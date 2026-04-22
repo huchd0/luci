@@ -10,7 +10,7 @@
 
 // .po 文件匹配当前语言
 var T = {
-    'TITLE': _('NETWORK SETUP'),
+    'TITLE': _('Netwiz NETWORK SETUP'),
     'SUBTITLE': _('Pure · Secure · Non-destructive Minimalist Config'),
     'MODE_ROUTER_TITLE': _('Secondary Router Mode'),
     'MODE_ROUTER_DESC': _('Upstream network dials up, this device acts as a secondary router.'),
