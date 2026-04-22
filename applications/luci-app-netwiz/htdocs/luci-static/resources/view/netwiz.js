@@ -40,7 +40,7 @@ var T = {
     'LBL_LAN_GW': _('LAN Gateway'),
     'PH_LAN_GW': _('Blank for Main, required for Bypass'),
     'BTN_BACK': _('Back'),
-    'BTN_NEXT': _('Next'),
+    'BTN_NEXT': _('Next Step'),  // ✅ 已修改为独一无二的词
     'BTN_EDIT': _('Back to Edit'),
     'TITLE_CONFIRM': _('Confirm Configuration'),
     'DESC_CONFIRM': _('The following settings will be applied, please verify:'),
@@ -65,7 +65,7 @@ var T = {
     'TXT_DHCP_SRV': _('DHCP Service:'),
     'TXT_ON': _('Enabled'),
     'TXT_OFF': _('Disabled'),
-    'BDG_SUCC': _('Connected'),
+    'BDG_SUCC': _('Dial Success'), // ✅ 已修改为独一无二的词
     'BDG_DIAL': _('Dialing / Disconnected'),
     'BDG_GOT': _('IP Acquired'),
     'BDG_WAIT': _('Waiting for IP...'),
