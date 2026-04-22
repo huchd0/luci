@@ -83,15 +83,21 @@ jobs:
         uses: actions/checkout@v4
 
       # 【核心修复】：物理隔离，防止 SDK 错误编译其他底层的 LuCI 核心组件
-      - name: 隔离插件代码 (防止核心包冲突)
+      # 【核心修复】：物理隔离，防止 SDK 错误编译其他底层的 LuCI 核心组件
+      - name: 隔离插件代码与修正路径
         run: |
           mkdir -p /tmp/pure_plugin
           # 1. 把您的核心插件提取到安全区
           cp -r applications/luci-app-netwiz /tmp/pure_plugin/
-          # 2. 彻底清空当前工作区（删除引发冲突的 libs, modules 等官方源码）
+          
+          # 2. 彻底清空当前工作区（清除冲突包，但也会删掉原本相对路径的 luci.mk）
           rm -rf *
-          # 3. 把您的纯净插件放回工作区根目录
+          
+          # 3. 把纯净插件放回工作区根目录
           cp -r /tmp/pure_plugin/luci-app-netwiz ./
+          
+          # 4. 【关键魔法】：将 Makefile 里的相对路径，动态替换为 SDK 的系统级绝对路径！
+          sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' luci-app-netwiz/Makefile
 
       - name: 编译 LuCI 插件 (IPK & APK)
         uses: sbwml/openwrt-gh-action-sdk@main   
