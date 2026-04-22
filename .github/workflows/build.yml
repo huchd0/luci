@@ -7,7 +7,7 @@ on:
       - 'README.md'
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch: # 手动在 Actions 页面触发编译
+  workflow_dispatch: # 允许手动在 Actions 页面触发编译
 
 jobs:
   build:
@@ -15,12 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 使用 x86_64 架构进行编译，可以按需添加其他架构
+        # 这里默认使用 x86_64 架构进行编译
         arch: [x86_64]
     
     steps:
     - name: Checkout Source Code
-      uses: actions/checkout@v3
+      # 更新到最新的 v4 版本
+      uses: actions/checkout@v4
 
     - name: Setup Build Environment
       env:
@@ -32,15 +33,14 @@ jobs:
 
     - name: Download and Setup ImmortalWrt SDK
       run: |
-        # 下载 ImmortalWrt SDK
-        # 如果需要编译 apk 格式
+        # 下载 ImmortalWrt SDK (以 23.05 版本的 x86_64 为例)
         wget -qO sdk.tar.xz "https://downloads.immortalwrt.org/releases/23.05.2/targets/x86/64/immortalwrt-sdk-23.05.2-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
         tar xf sdk.tar.xz
         mv immortalwrt-sdk-*/ sdk
         
     - name: Prepare Package in SDK
       run: |
-        # 仓库中的插件源码放入 SDK 的 package 目录
+        # 将您仓库中的插件源码放入 SDK 的 package 目录
         mkdir -p sdk/package/luci-app-netwiz
         cp -r Makefile htdocs po root sdk/package/luci-app-netwiz/
         
@@ -54,11 +54,12 @@ jobs:
         # 生成默认编译配置
         make defconfig
         
-        # 单独编译插件
+        # 核心：单独编译您的插件
         make package/luci-app-netwiz/compile V=s
         
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      # 更新到最新的 v4 版本
+      uses: actions/upload-artifact@v4
       with:
         name: luci-app-netwiz-${{ matrix.arch }}
         # 自动抓取编译好的包
