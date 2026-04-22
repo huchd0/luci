@@ -1,0 +1,341 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: luci-app-netwiz\n"
+"Language: zh_TW\n"
+
+msgid "NETWORK SETUP"
+msgstr "網 路 設 置 精 靈"
+
+msgid "Pure · Secure · Non-destructive Minimalist Config"
+msgstr "「 純淨 · 安全 · 零破壞 」的極簡網路配置"
+
+msgid "Secondary Router Mode"
+msgstr "二級路由模式"
+
+msgid "Upstream network dials up, this device acts as a secondary router."
+msgstr "上級網路撥號，本設備作為二級路由。"
+
+msgid "PPPoE Dial-up"
+msgstr "寬頻撥號 (PPPoE)"
+
+msgid "Dial up directly using account and password on this device."
+msgstr "由本設備直接輸入帳號密碼撥號上網。"
+
+msgid "LAN Settings"
+msgstr "區域網路設定"
+
+msgid "Change device LAN IP, or switch to Bypass Router mode."
+msgstr "修改設備內網 IP，或切換旁路由模式。"
+
+msgid "Reading underlying config..."
+msgstr "讀取底層配置中..."
+
+msgid "Back to Home"
+msgstr "返回首頁"
+
+msgid "Configure WAN"
+msgstr "配置 WAN 埠網路"
+
+msgid "Connection Type"
+msgstr "接入方式"
+
+msgid "DHCP (Auto)"
+msgstr "動態獲取 (DHCP)"
+
+msgid "Static IP"
+msgstr "靜態 IP"
+
+msgid "Gateway"
+msgstr "閘道器"
+
+msgid "e.g., 192.168.1.2"
+msgstr "例: 192.168.1.2"
+
+msgid "e.g., 192.168.1.1"
+msgstr "例: 192.168.1.1"
+
+msgid "PPPoE Credentials"
+msgstr "寬頻帳號資訊"
+
+msgid "PPPoE Username"
+msgstr "寬頻帳號"
+
+msgid "Enter PPPoE username"
+msgstr "請輸入電信商提供的寬頻帳號"
+
+msgid "PPPoE Password"
+msgstr "寬頻密碼"
+
+msgid "Enter PPPoE password"
+msgstr "請輸入寬頻密碼"
+
+msgid "Configure LAN"
+msgstr "配置 LAN 埠網路"
+
+msgid "Enable Bypass Mode"
+msgstr "啟用旁路由模式"
+
+msgid "<b style=\"font-size: 16px;\">Bypass Mode Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">旁路由模式開啟：</b><br>1、DHCP 將會關閉，設備無法從本機獲取 IP，<b style=\"color: #059669;\">設備需要手動設定靜態IP或上級路由分配IP</b>。<br>2、閘道器必須填寫上級主路由 IP。<br>3、本機 IP 如有變更，請確保訪問端與修改後 IP 處於同一網段，否則將<b style=\"color: #059669;\">無法訪問本路由器</b>！"
+
+msgid "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. Gateway is usually left blank.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #dc2626;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">主路由模式開啟：</b><br>1、DHCP 將會開啟，本機負責分配 IP。<br>2、主路由閘道器通常留空。<br>3、本機 IP 如有變更，請確保訪問端與修改後 IP 處於同一網段，否則將<b style=\"color: #dc2626;\">無法訪問本路由器</b>！"
+
+msgid "Device LAN IP"
+msgstr "本機區域網路 IP"
+
+msgid "LAN Gateway"
+msgstr "區域網路閘道器"
+
+msgid "Blank for Main, required for Bypass"
+msgstr "主路由留空，旁路由必填"
+
+msgid "Back"
+msgstr "返回"
+
+msgid "Next"
+msgstr "下一步"
+
+msgid "Back to Edit"
+msgstr "返回修改"
+
+msgid "Confirm Configuration"
+msgstr "網 路 配 置 確 認"
+
+msgid "The following settings will be applied, please verify:"
+msgstr "即將應用以下網路配置，請核對："
+
+msgid "Application Notes:"
+msgstr "配置生效說明："
+
+msgid "After confirmation, the network will restart and apply new settings."
+msgstr "點擊確認後，底層網路將自動重啟並應用新配置。"
+
+msgid "The system will auto-refresh or redirect in 15 seconds."
+msgstr "系統將在 15 秒後為您自動刷新或跳轉。"
+
+msgid "Apply Settings"
+msgstr "確認應用"
+
+msgid "Bypass Mode"
+msgstr "旁路由模式"
+
+msgid "Main Router (PPPoE)"
+msgstr "主路由 (寬頻撥號)"
+
+msgid "Secondary Router (DHCP)"
+msgstr "二級路由 (動態 DHCP)"
+
+msgid "Secondary Router (Static IP)"
+msgstr "二級路由 (靜態 IP)"
+
+msgid "LAN Mode"
+msgstr "區域網路模式"
+
+msgid "Device IP: "
+msgstr "本機 IP: "
+
+msgid "Upstream GW: "
+msgstr "上級閘道器: "
+
+msgid "Public IP: "
+msgstr "公網 IP: "
+
+msgid "Remote GW: "
+msgstr "遠端閘道器: "
+
+msgid "LAN IP: "
+msgstr "區域網路 IP: "
+
+msgid "Status: "
+msgstr "狀態: "
+
+msgid "Waiting for remote response"
+msgstr "等待遠端響應"
+
+msgid "WAN IP: "
+msgstr "WAN IP: "
+
+msgid "Getting IP..."
+msgstr "獲取 IP 中"
+
+msgid "DHCP Service: "
+msgstr "DHCP 服務: "
+
+msgid "Enabled"
+msgstr "開啟"
+
+msgid "Disabled"
+msgstr "關閉"
+
+msgid "Connected"
+msgstr "撥號成功"
+
+msgid "Dialing / Disconnected"
+msgstr "撥號中 / 未連接"
+
+msgid "IP Acquired"
+msgstr "已獲取 IP"
+
+msgid "Waiting for IP..."
+msgstr "等待分配..."
+
+msgid "Interface Connected"
+msgstr "介面已連接"
+
+msgid "Cable Unplugged"
+msgstr "未插入網路線"
+
+msgid "Getting..."
+msgstr "獲取中..."
+
+msgid "Not acquired"
+msgstr "未獲取"
+
+msgid "Not set"
+msgstr "未設置"
+
+msgid "System read error, anti-freeze triggered"
+msgstr "系統讀取異常，防卡死已觸發"
+
+msgid "Underlying crash intercepted, please force refresh"
+msgstr "底層崩潰被攔截，請強制刷新"
+
+msgid "Incomplete info"
+msgstr "資訊不完整"
+
+msgid "Device IP cannot be empty."
+msgstr "本機 IP 不能為空。"
+
+msgid "Static IP and Gateway cannot be empty."
+msgstr "靜態 IP 和閘道器均不能為空。"
+
+msgid "PPPoE username and password cannot be empty."
+msgstr "寬頻帳號和密碼均不能為空。"
+
+msgid "Format Error"
+msgstr "格式錯誤"
+
+msgid "The device IP is invalid, please check!"
+msgstr "您填寫的本機 IP 不合法，請檢查！"
+
+msgid "WAN IP is invalid, please check!"
+msgstr "WAN 埠 IP 不合法，請檢查！"
+
+msgid "Gateway IP is invalid, please check!"
+msgstr "您填寫的閘道器 IP 不合法，請檢查！"
+
+msgid "Logic Error"
+msgstr "邏輯錯誤"
+
+msgid "Bypass mode requires an upstream gateway IP."
+msgstr "開啟旁路由模式必須填寫上級閘道器 IP。"
+
+msgid "WAN Static IP MUST NOT be the same as the gateway!"
+msgstr "WAN 埠靜態 IP 绝不能與閘道器相同！"
+
+msgid "The Bypass Device IP MUST NOT be the same as the Gateway!"
+msgstr "旁路由的【本機 IP】绝不能與【閘道器】相同！"
+
+msgid "No Changes Needed"
+msgstr "無需修改"
+
+msgid "Your settings match the current router config exactly."
+msgstr "您的設定與當前路由器底層配置完全一致。"
+
+msgid "Exit to Home"
+msgstr "退出首頁"
+
+msgid "Conflict Blocked"
+msgstr "衝突攔截"
+
+msgid "The WAN IP cannot be the same as the current LAN IP ("
+msgstr "您填寫的 WAN 埠 IP 不能與本機現有的區域網路 IP ("
+
+msgid ")!"
+msgstr ") 相同！"
+
+msgid "The WAN port cannot be in the same subnet as the LAN ("
+msgstr "您填寫的 WAN 埠不能與區域網路 ("
+
+msgid ")!<br>This causes a routing loop."
+msgstr ") 處於同一網段！<br>這會導致路由器死循環，請更換網段。"
+
+msgid "Subnet Error"
+msgstr "網段錯誤"
+
+msgid "The WAN Static IP must be in the same subnet as the Gateway!<br>e.g., if gateway is "
+msgstr "WAN 埠的【靜態 IP】必須與上級【閘道器】處於同一網段！<br>例如：閘道器是 "
+
+msgid ", the IP must be "
+msgstr "，那 IP 必須是 "
+
+msgid "The Bypass Device IP must be in the same subnet as the Gateway!"
+msgstr "旁路由的【本機 IP】必須與【閘道器】處於同一網段！"
+
+msgid "LAN IP cannot be the same as the existing WAN IP ("
+msgstr "區域網路 IP 不能與現有的 WAN 埠 IP ("
+
+msgid "LAN cannot be in the same subnet as WAN ("
+msgstr "區域網路不能與 WAN 埠 ("
+
+msgid "Config Warning"
+msgstr "主路由配置警告"
+
+msgid "You selected [Main Router Mode] but filled in the [Gateway].<br><br><b>For a standard main router, the gateway must be blank.</b> Entering a gateway may cause the device to fail at distributing network, leading to a total outage!<br><br>Are you sure you want to do this?"
+msgstr "檢測到您選擇了【主路由模式】，卻強行填寫了【閘道器】。<br><br><b>在標準主路由下，閘道器必須留空。</b>亂填閘道器會導致設備無法正常分發網路，進而導致全屋斷網！<br><br>您確定要這麼做嗎？"
+
+msgid "Force Apply"
+msgstr "強行應用"
+
+msgid "System Exception"
+msgstr "系統异常"
+
+msgid "Cannot read underlying config for validation, please refresh."
+msgstr "無法讀取底層配置進行校驗，請刷新網頁重試。"
+
+msgid "Applying Config"
+msgstr "正在下發配置"
+
+msgid "Writing request, please wait..."
+msgstr "請求寫入中，請稍候..."
+
+msgid "Config Applied"
+msgstr "配置已生效"
+
+msgid "Since the IP has changed to <b style=\"color:#3b82f6;\">"
+msgstr "由於 IP 已變更為 <b style=\"color:#3b82f6;\">"
+
+msgid "</b>,<br>the system will attempt to redirect to the new address in 15 seconds.<br><br><small>Note: You will need to log in again.</small>"
+msgstr "</b>，<br>系統將在 15 秒後嘗試跳轉到新地址。<br><br><small>註：跳轉後需重新登入。</small>"
+
+msgid "Applying Configuration"
+msgstr "正在應用配置"
+
+msgid "Underlying network is resetting, please wait...<br><br><span style=\"font-size: 14px; color: #555;\">(If it does not automatically return in 15s, manually refresh)</span>"
+msgstr "底層網路正在重置，請稍候...<br><br><span style=\"font-size: 14px; color: #555;\">(若 15 秒後未自動返回，請手動刷新頁面)</span>"
+
+msgid "❌ Write Failed"
+msgstr "❌ 寫入失敗"
+
+msgid "Underlying call exception, please try logging in again.<br><small>Error code: "
+msgstr "底層調用異常，請嘗試重新登入後台或檢查權限配置。<br><small>錯誤碼："
+
+msgid "Close"
+msgstr "關閉"
+
+msgid "Account"
+msgstr "帳號"
+
+msgid "Password"
+msgstr "密碼"
+
+msgid "Hidden"
+msgstr "已隱藏"
+
+msgid "IP & Gateway"
+msgstr "IP及閘道器"
+
+msgid "Auto-assigned by upstream router"
+msgstr "由上級路由自動分配"
