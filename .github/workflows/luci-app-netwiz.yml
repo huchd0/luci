@@ -12,9 +12,7 @@ permissions:
   contents: write
 
 jobs:
-  # ==========================================
-  # 阶段 1：智能版本号处理 (原生逻辑保留)
-  # ==========================================
+  # 版本号处理
   prepare:
     name: Handle Version Input
     runs-on: ubuntu-22.04
@@ -49,7 +47,7 @@ jobs:
           V3=${parts[2]:-0}
           NEW_VERSION="${V1}.${V2}.${V3}"
           
-          # 在 Ubuntu 本机更新代码，必须带有物理路径 applications/
+          # Ubuntu 更新代码，带路径 applications/
           sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=$NEW_VERSION/g" applications/luci-app-netwiz/Makefile
           sed -i "s/var CURRENT_VERSION = '.*';/var CURRENT_VERSION = 'v$NEW_VERSION';/g" applications/luci-app-netwiz/root/www/luci-static/resources/view/netwiz.js || true
           
@@ -66,9 +64,6 @@ jobs:
           
           echo "skip_build=true" >> $GITHUB_OUTPUT
 
-  # ==========================================
-  # 阶段 2：引擎替换为稳定的 Docker 矩阵编译
-  # ==========================================
   build:
     name: Compile IPK & APK
     needs: prepare
@@ -82,35 +77,25 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # 【核心修复】：物理隔离，防止 SDK 错误编译其他底层的 LuCI 核心组件
-      # 【核心修复】：物理隔离，防止 SDK 错误编译其他底层的 LuCI 核心组件
       - name: 隔离插件代码与修正路径
         run: |
           mkdir -p /tmp/pure_plugin
-          # 1. 把您的核心插件提取到安全区
           cp -r applications/luci-app-netwiz /tmp/pure_plugin/
-          
-          # 2. 彻底清空当前工作区（清除冲突包，但也会删掉原本相对路径的 luci.mk）
           rm -rf *
-          
-          # 3. 把纯净插件放回工作区根目录
           cp -r /tmp/pure_plugin/luci-app-netwiz ./
-          
-          # 4. 【关键魔法】：将 Makefile 里的相对路径，动态替换为 SDK 的系统级绝对路径！
           sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' luci-app-netwiz/Makefile
 
       - name: 编译 LuCI 插件 (IPK & APK)
         uses: sbwml/openwrt-gh-action-sdk@main   
         env:
           ARCH: ${{ matrix.sdk_version }}
-          # 此时根目录下只有 luci-app-netwiz 这一个包了
           PACKAGES: luci-app-netwiz
           NO_REFRESH_CHECK: true
 
       - name: 提取安裝包 (保留主程式與語言包)
         run: |
           mkdir -p release_pkgs
-          # 抓取所有檔名包含 netwiz 的包 (這樣就能同時抓到 app 和 i18n 語言包)
+          # 抓取所有包含 netwiz 的包
           find bin/ -name "*netwiz*.ipk" -exec cp {} release_pkgs/ \; || true
           find bin/ -name "*netwiz*.apk" -exec cp {} release_pkgs/ \; || true
 
@@ -121,9 +106,7 @@ jobs:
           path: release_pkgs/*
           compression-level: 0
 
-  # ==========================================
-  # 阶段 3：合并发版
-  # ==========================================
+  # 合并发版
   release:
     name: Publish Release
     needs: [prepare, build]
