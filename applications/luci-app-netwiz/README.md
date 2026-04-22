@@ -23,9 +23,8 @@ It is designed to be highly user-friendly for novices setting up secondary route
 * **Multi-language:** Built-in i18n support (English, zh-Hans, zh-Hant).
 * **Strict ACL:** Frontend has zero direct write access to UCI. All modifications are safely encapsulated within the backend `rpcd` script.
 
-### Installation
-* You can compile it directly via the OpenWrt SDK or download the pre-compiled `.apk` / `.ipk` from the [Releases](../../releases) page.
-Core Supported Modules
+### Breadcrumb Trail
+* 👉 **System -> Network Wizard**。
 
 🌐 **Secondary Router Mode (DHCP / Static IP)**
    * Use Case: When the upstream modem (ONT) already handles PPPoE dialing, or an existing primary router is present. This device operates as a secondary router or segmented subnet router.
@@ -63,8 +62,8 @@ Core Supported Modules
 * **多语言支持：** 原生支持自动切换英文、简体中文与繁体中文。
 * **严格的权限控制 (ACL)：** 前端页面剥离了 UCI 写入权限，所有底层修改均由后端的 `rpcd` 脚本安全执行，彻底杜绝越权风险。
 
-### 安装方法
-您可以通过 OpenWrt 官方 SDK 编译此插件，或者直接前往 [Releases](../../releases) 页面下载编译好的 `.apk` 或 `.ipk` 安装包，并在路由器后台上传安装，即可在👉 **系统 (System) -> 网络向导**找到。
+### 导航路径
+👉 **系统 (System) -> 网络向导**。
 
 ---
 
