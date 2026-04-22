@@ -7,8 +7,8 @@ msgstr ""
 msgid "Network Wizard"
 msgstr "網路設置精靈"
 
-msgid "NETWORK SETUP"
-msgstr "網 路 設 置 精 靈"
+msgid "Netwiz NETWORK SETUP"
+msgstr "Netwiz 網 路 設 置 精 靈"
 
 msgid "Pure · Secure · Non-destructive Minimalist Config"
 msgstr "「 純淨 · 安全 · 零破壞 」的極簡網路配置"
