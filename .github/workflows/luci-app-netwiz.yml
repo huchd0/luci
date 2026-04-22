@@ -107,11 +107,12 @@ jobs:
           PACKAGES: luci-app-netwiz
           NO_REFRESH_CHECK: true
 
-      - name: 提取并重命名安装包 (固定文件名)
+      - name: 提取安裝包 (保留主程式與語言包)
         run: |
           mkdir -p release_pkgs
-          find bin/ -name "luci-app-netwiz*.ipk" -exec cp {} release_pkgs/luci-app-netwiz.ipk \; || true
-          find bin/ -name "luci-app-netwiz*.apk" -exec cp {} release_pkgs/luci-app-netwiz.apk \; || true
+          # 抓取所有檔名包含 netwiz 的包 (這樣就能同時抓到 app 和 i18n 語言包)
+          find bin/ -name "*netwiz*.ipk" -exec cp {} release_pkgs/ \; || true
+          find bin/ -name "*netwiz*.apk" -exec cp {} release_pkgs/ \; || true
 
       - name: 上传编译产物到临时云端
         uses: actions/upload-artifact@v4
