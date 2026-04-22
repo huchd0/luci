@@ -8,7 +8,7 @@ msgid "Network Wizard"
 msgstr "网络向导"
 
 msgid "NETWORK SETUP"
-msgstr "网 络 设 置 向 导"
+msgstr "Netwiz 网 络 设 置 向 导"
 
 msgid "Pure · Secure · Non-destructive Minimalist Config"
 msgstr "「 纯净 · 安全 · 零破坏 」的极简网络配置"
