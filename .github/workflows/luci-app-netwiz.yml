@@ -31,13 +31,10 @@ jobs:
         
     - name: Prepare Package in SDK
       run: |
-        # 将仓库里深层目录下的整个插件文件夹，完整复制到 SDK 的 package 目录
-        
-        # Fork 的官方 LuCI 仓库，根目录下直接是 applications 文件夹
+        # 复制插件目录到 SDK
         cp -r applications/luci-app-netwiz sdk/package/
-        
-        # 根目录下真的有一个名叫 luci 的文件夹
-        # cp -r luci/applications/luci-app-netwiz sdk/package/
+
+        sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' sdk/package/luci-app-netwiz/Makefile
         
     - name: Compile the Plugin
       run: |
