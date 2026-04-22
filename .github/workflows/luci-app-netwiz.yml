@@ -82,11 +82,22 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      # 【核心修复】：物理隔离，防止 SDK 错误编译其他底层的 LuCI 核心组件
+      - name: 隔离插件代码 (防止核心包冲突)
+        run: |
+          mkdir -p /tmp/pure_plugin
+          # 1. 把您的核心插件提取到安全区
+          cp -r applications/luci-app-netwiz /tmp/pure_plugin/
+          # 2. 彻底清空当前工作区（删除引发冲突的 libs, modules 等官方源码）
+          rm -rf *
+          # 3. 把您的纯净插件放回工作区根目录
+          cp -r /tmp/pure_plugin/luci-app-netwiz ./
+
       - name: 编译 LuCI 插件 (IPK & APK)
         uses: sbwml/openwrt-gh-action-sdk@main   
         env:
           ARCH: ${{ matrix.sdk_version }}
-          # 【修复点！！！】：神仙插件会自动全盘扫描子目录，这里只需写包名即可！
+          # 此时根目录下只有 luci-app-netwiz 这一个包了
           PACKAGES: luci-app-netwiz
           NO_REFRESH_CHECK: true
 
@@ -101,7 +112,7 @@ jobs:
         with:
           name: packages-${{ matrix.sdk_version }}
           path: release_pkgs/*
-          compression-level: 0 
+          compression-level: 0
 
   # ==========================================
   # 阶段 3：合并发版
