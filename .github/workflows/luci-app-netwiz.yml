@@ -23,7 +23,7 @@ jobs:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 智能版本号处理
+    # 版本号处理
     - name: Handle Version Input
       id: version_handler
       run: |
@@ -59,7 +59,7 @@ jobs:
         
         echo "skip_build=true" >> $GITHUB_OUTPUT
 
-    # 仅留空时执行
+    # 留空时执行编译
     - name: Setup Build Environment
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
@@ -79,9 +79,10 @@ jobs:
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
         cp -r applications/luci-app-netwiz sdk/package/
+        # 修正 Makefile 中的 luci.mk 引用路径
         sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' sdk/package/luci-app-netwiz/Makefile
 
-    # IPK & APK编译
+    # 生成 IPK 和 APK
     - name: Compile and Collect Packages (IPK & APK)
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
@@ -90,21 +91,31 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
-        echo ">>> 开始编译 IPK 格式 <<<"
+        # --- 步骤 A: 编译 IPK 格式 ---
+        echo ">>> 正在编译 IPK 格式 <<<"
         make defconfig
+        # 确保不启用 APK 选项
+        sed -i 's/CONFIG_USE_APK=y/# CONFIG_USE_APK is not set/' .config || true
         make package/luci-app-netwiz/compile V=s
+        # 移动生成的 IPK
         find bin/packages/ -name "luci-app-netwiz_*.ipk" -exec cp {} ../release_assets/ \;
         
-        echo ">>> 清理缓存，准备生成新格式 <<<"
+        # 清理以便进行下一轮编译
         make package/luci-app-netwiz/clean
         
-        echo ">>> 开始编译 APK 格式 <<<"
+        # --- 步骤 B: 编译 APK 格式 ---
+        echo ">>> 正在编译 APK 格式 <<<"
+        # 强力注入并锁定 APK 选项
         echo "CONFIG_USE_APK=y" >> .config
-        make defconfig 
+        make defconfig
+        # 检查 defconfig 是否把选项删了，如果没有则补上
+        grep -q "CONFIG_USE_APK=y" .config || echo "CONFIG_USE_APK=y" >> .config
+        
         make package/luci-app-netwiz/compile V=s
-        find bin/packages/ -name "luci-app-netwiz_*.apk" -exec cp {} ../release_assets/ \;
+        # 移动生成的 APK (注意：部分 SDK 即使生成了 APK 也会存放在相同目录)
+        find bin/packages/ -name "luci-app-netwiz_*.*pk" -exec cp {} ../release_assets/ \;
 
-    # 获取版本号
+    # 获取当前 Makefile 中的版本号用于发布
     - name: Get Version
       if: steps.version_handler.outputs.skip_build != 'true'
       id: get_version
