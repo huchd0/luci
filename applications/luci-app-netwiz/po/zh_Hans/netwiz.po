@@ -97,7 +97,7 @@ msgstr "主路由留空，旁路由必填"
 msgid "Back"
 msgstr "返回"
 
-msgid "Next"
+msgid "Next Step"
 msgstr "下一步"
 
 msgid "Back to Edit"
@@ -172,7 +172,7 @@ msgstr "开启"
 msgid "Disabled"
 msgstr "关闭"
 
-msgid "Connected"
+msgid "Dial Success"
 msgstr "拨号成功"
 
 msgid "Dialing / Disconnected"
