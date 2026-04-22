@@ -4,6 +4,9 @@ msgstr ""
 "Project-Id-Version: luci-app-netwiz\n"
 "Language: zh_CN\n"
 
+msgid "Network Wizard"
+msgstr "网络向导"
+
 msgid "NETWORK SETUP"
 msgstr "网 络 设 置 向 导"
 
