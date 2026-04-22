@@ -5,7 +5,7 @@ msgstr ""
 "Language: zh_CN\n"
 
 msgid "Network Wizard"
-msgstr "网络向导"
+msgstr "网络设置向导"
 
 msgid "Netwiz NETWORK SETUP"
 msgstr "Netwiz 网 络 设 置 向 导"
