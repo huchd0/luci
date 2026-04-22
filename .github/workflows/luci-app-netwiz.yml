@@ -23,7 +23,7 @@ jobs:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 版本号处理
+    # 智能版本号处理
     - name: Handle Version Input
       id: version_handler
       run: |
@@ -59,7 +59,7 @@ jobs:
         
         echo "skip_build=true" >> $GITHUB_OUTPUT
 
-    # 留空时执行编译
+    # 仅留空时执行
     - name: Setup Build Environment
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
@@ -79,10 +79,8 @@ jobs:
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
         cp -r applications/luci-app-netwiz sdk/package/
-        # 修正 Makefile 中的 luci.mk 引用路径
         sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' sdk/package/luci-app-netwiz/Makefile
 
-    # 生成 IPK 和 APK
     - name: Compile and Collect Packages (IPK & APK)
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
@@ -91,38 +89,34 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
-        # --- 编译 IPK 格式 ---
-        echo ">>> 正在编译 IPK 格式 <<<"
-        rm -f .config
+        # --- 1. 编译 IPK ---
+        echo ">>> 开始编译 IPK 格式 <<<"
         make defconfig
-        sed -i 's/CONFIG_USE_APK=y/# CONFIG_USE_APK is not set/' .config || true
-        # 指定不使用 APK
+        # 显式告诉 make 不要用 APK
         make package/luci-app-netwiz/compile V=s CONFIG_USE_APK=
-        
-        # 移动生成的 IPK
         find bin/packages/ -name "luci-app-netwiz_*.ipk" -exec cp {} ../release_assets/ \;
         
-        # 彻底清理残留，防止 SDK 偷懒跳过第二步
+        # --- 2. 彻底大扫除 ---
+        echo ">>> 清理缓存，准备生成新格式 <<<"
         make package/luci-app-netwiz/clean
-        rm -rf bin/packages/
+        rm -rf bin/
         
-        # 编译 APK 格式 ---
-        echo ">>> 正在编译 APK 格式 <<<"
+        # --- 3. 编译 APK ---
+        echo ">>> 开始编译 APK 格式 <<<"
         rm -f .config
-        echo "CONFIG_USE_APK=y" > .config
-        make defconfig
+        echo "CONFIG_PACKAGE_apk=y" >> .config
+        echo "CONFIG_USE_APK=y" >> .config
+        make defconfig 
         
-        # 在 make 命令后面跟上变量，强行覆盖所有底层默认规则！
-        make package/luci-app-netwiz/compile V=s CONFIG_USE_APK=y USE_APK=1
+        sed -i 's/LUCI_PKGARCH:=all/LUCI_PKGARCH:=x86_64/g' package/luci-app-netwiz/Makefile || true
+        sed -i 's/PKGARCH:=all/PKGARCH:=x86_64/g' package/luci-app-netwiz/Makefile || true
         
-        # 移动生成的 APK
+        # 命令行最高级别变量注入
+        make package/luci-app-netwiz/compile V=s USE_APK=1 CONFIG_USE_APK=y
+        
         find bin/packages/ -name "luci-app-netwiz_*.apk" -exec cp {} ../release_assets/ \;
-        
-        # 打印一下最终生成了什么，方便我们确认
-        echo "=== 检查 release_assets 目录生成的文件 ==="
-        ls -lh ../release_assets/
 
-    # 获取当前 Makefile 中的版本号用于发布
+    # 获取版本号
     - name: Get Version
       if: steps.version_handler.outputs.skip_build != 'true'
       id: get_version
@@ -140,6 +134,6 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          release_assets/*.*pk
+          release_assets/luci-app-netwiz_*.*pk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
