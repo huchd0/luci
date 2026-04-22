@@ -81,22 +81,21 @@ jobs:
         cp -r applications/luci-app-netwiz sdk/package/
         sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' sdk/package/luci-app-netwiz/Makefile
 
-    # ================= 终极魔法：IPK & APK 强力双编译 =================
     - name: Compile and Collect Packages (IPK & APK)
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
         mkdir -p release_assets
         cd sdk
         
-        # 【关键修复】：在刚进入 SDK 时，把官方纯净版的“大脑”备份下来！千万不能删！
-        cp .config .config.bak
-        
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
+        make defconfig
+        
+        cp .config .config.bak
+        
         # --- 1. 编译 IPK ---
         echo ">>> 开始编译 IPK 格式 <<<"
-        make defconfig
         make package/luci-app-netwiz/compile V=s CONFIG_USE_APK=
         find bin/packages/ -name "luci-app-netwiz_*.ipk" -exec cp {} ../release_assets/ \;
         
@@ -109,16 +108,16 @@ jobs:
         # --- 3. 编译 APK ---
         echo ">>> 开始编译 APK 格式 <<<"
         
-        # 【关键修复】：恢复官方的纯净配置，然后再安全地注入 APK 开关
+        # 恢复配置
         cp .config.bak .config
+        
+        # 安全地注入 APK 开关，并重新应用配置
         echo "CONFIG_USE_APK=y" >> .config
         make defconfig 
         
-        # 临时将架构从 all 篡改为 x86_64，逼迫 SDK 使用全新 APK 引擎打包
         sed -i 's/LUCI_PKGARCH:=all/LUCI_PKGARCH:=x86_64/g' package/luci-app-netwiz/Makefile || true
         sed -i 's/PKGARCH:=all/PKGARCH:=x86_64/g' package/luci-app-netwiz/Makefile || true
         
-        # 命令行最高级别变量注入
         make package/luci-app-netwiz/compile V=s USE_APK=1 CONFIG_USE_APK=y
         
         find bin/packages/ -name "luci-app-netwiz_*.apk" -exec cp {} ../release_assets/ \;
