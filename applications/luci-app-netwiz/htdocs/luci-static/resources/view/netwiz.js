@@ -8,7 +8,7 @@
 'require rpc';
 'require uci';
 
-// .po 文件匹配当前语言
+// .po 文件匹配当前语言 (已移除所有容易导致 Bug 的隐形尾部空格)
 var T = {
     'TITLE': _('Netwiz NETWORK SETUP'),
     'SUBTITLE': _('Pure · Secure · Non-destructive Minimalist Config'),
@@ -54,16 +54,16 @@ var T = {
     'STAT_SEC_DHCP': _('Secondary Router (DHCP)'),
     'STAT_SEC_STATIC': _('Secondary Router (Static IP)'),
     'STAT_LAN': _('LAN Mode'),
-    'TXT_DEV_IP': _('Device IP: '),
-    'TXT_UP_GW': _('Upstream GW: '),
-    'TXT_PUB_IP': _('Public IP: '),
-    'TXT_REM_GW': _('Remote GW: '),
-    'TXT_LAN_IP': _('LAN IP: '),
-    'TXT_STATUS': _('Status: '),
+    'TXT_DEV_IP': _('Device IP:'),
+    'TXT_UP_GW': _('Upstream GW:'),
+    'TXT_PUB_IP': _('Public IP:'),
+    'TXT_REM_GW': _('Remote GW:'),
+    'TXT_LAN_IP': _('LAN IP:'),
+    'TXT_STATUS': _('Status:'),
     'TXT_WAIT_REM': _('Waiting for remote response'),
-    'TXT_WAN_IP': _('WAN IP: '),
+    'TXT_WAN_IP': _('WAN IP:'),
     'TXT_GET_IP': _('Getting IP...'),
-    'TXT_DHCP_SRV': _('DHCP Service: '),
+    'TXT_DHCP_SRV': _('DHCP Service:'),
     'TXT_ON': _('Enabled'),
     'TXT_OFF': _('Disabled'),
     'BDG_SUCC': _('Connected'),
@@ -207,7 +207,10 @@ return view.extend({
             '.nw-modal-btn-cancel:hover { background: #e2e8f0; }',
             '.nw-modal-btn-danger { background: #ef4444; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 15px; cursor: pointer; flex: 1; transition: background 0.2s; }',
             '.nw-modal-btn-danger:hover { background: #dc2626; }',
-            '.nw-hl { color: #facc15; font-weight: bold; }',
+            
+            /* 【优雅的 CSS 魔法】：直接在这里给高亮文本加上左边距，替代写死在词条里的空格！ */
+            '.nw-hl { color: #facc15; font-weight: bold; margin-left: 6px; }',
+            
             '@media screen and (max-width: 768px) {',
             '  .nw-wrapper { padding-top: 3vh; padding-bottom: 5vh; }',
             '  .nw-header { margin-top: -30px; padding: 20px 15px; width: 92%; box-sizing: border-box; border-radius: 12px; }',
@@ -425,8 +428,8 @@ return view.extend({
                     var currentWanIp = (currentWanProto === 'static') ? safeUciGet('network', 'wan', 'ipaddr', '').split('/')[0] : '', currentWanGw = safeUciGet('network', 'wan', 'gateway', ''), currentBypass = (safeUciGet('dhcp', 'lan', 'ignore', '') === '1' ? '1' : '0'), newBypass = bypassToggle.checked ? '1' : '0';
                     if ((selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass) || (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) || (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp')) { openModal({title: T['M_NO_MOD_TIT'], msg: T['M_NO_MOD_MSG'], okText: T['M_EXIT'], onOk: returnToStep1 }); return; }
                     if (selectedMode === 'router' && rType === 'static') { if (targetIp === currentLanIp || isSameSubnet(targetIp, currentLanIp)) { openModal({title:T['M_CFLT_TIT'], msg: (targetIp === currentLanIp ? T['M_CFLT_IP1']+currentLanIp+T['M_CFLT_IP2'] : T['M_CFLT_SUB1']+currentLanIp+T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; } if (targetIp === targetGw || !isSameSubnet(targetIp, targetGw)) { openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_GW']:T['M_SUB_ERR_WAN']+targetGw+T['M_SUB_ERR_WAN2']+targetGw.substring(0, targetGw.lastIndexOf('.'))+'.x。'), okText:T['BTN_EDIT']}); return; } }
-                    // ✅ 正确代码：
-if (selectedMode === 'lan') { if (isBypass && (targetIp === targetGw || !isSameSubnet(targetIp, targetGw))) { openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_BYP']:T['M_SUB_ERR_BYP']), okText:T['BTN_EDIT']}); return; } if (currentWanIp && (targetIp === currentWanIp || isSameSubnet(targetIp, currentWanIp))) { openModal({title:T['M_CFLT_TIT'], msg:(targetIp===currentWanIp?T['M_CFLT_LAN_IP1']+currentWanIp+T['M_CFLT_IP2']:T['M_CFLT_LAN_SUB1']+currentWanIp+T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; } }
+                    
+                    if (selectedMode === 'lan') { if (isBypass && (targetIp === targetGw || !isSameSubnet(targetIp, targetGw))) { openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_BYP']:T['M_SUB_ERR_BYP']), okText:T['BTN_EDIT']}); return; } if (currentWanIp && (targetIp === currentWanIp || isSameSubnet(targetIp, currentWanIp))) { openModal({title:T['M_CFLT_TIT'], msg:(targetIp===currentWanIp?T['M_CFLT_LAN_IP1']+currentWanIp+T['M_CFLT_IP2']:T['M_CFLT_LAN_SUB1']+currentWanIp+T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; } }
 
                     var b = function(t, p) { var h = "<div style='text-align:center; font-size:18px; margin-bottom:15px;'>" + t + "</div><div style='background:rgba(0,0,0,0.15); border-radius:8px; padding:10px 15px; font-size:14.5px;'>"; for (var i=0; i < p.length; i++) h += "<div style='display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);'><span style='opacity:0.8;'>" + p[i][0] + "</span><span style='font-family:monospace;'>" + p[i][1] + "</span></div>"; return h + "</div>"; };
                     if (selectedMode === 'lan') confirmText.innerHTML = b(isBypass ? T['MODE_LAN_TITLE']+" - "+T['STAT_BYPASS'] : T['MODE_LAN_TITLE']+" - "+T['STAT_LAN'], [[T['TXT_DEV_IP'].replace(':',''), targetIp], [T['LBL_GW'], targetGw || T['TXT_NOT_SET']], ["DHCP", isBypass ? T['TXT_OFF'] : T['TXT_ON']]]);
