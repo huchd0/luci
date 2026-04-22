@@ -46,8 +46,13 @@ jobs:
         make defconfig
         make package/luci-app-netwiz/compile V=s
         
+    - name: Check Generated Files
+      run: |
+        echo "=== 以下是编译输出的所有文件 ==="
+        find sdk/bin/ -type f -name "luci-app-netwiz_*"
+        
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: luci-app-netwiz-${{ matrix.arch }}-apk
-        path: sdk/bin/packages/**/luci-app-netwiz_*.apk
+        name: luci-app-netwiz-${{ matrix.arch }}-package
+        path: sdk/bin/packages/**/luci-app-netwiz_*.*pk
