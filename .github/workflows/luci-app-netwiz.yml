@@ -33,7 +33,7 @@ jobs:
         
     - name: Prepare Package
       run: |
-        # applications 下的整个插件包，复制进 SDK 的 package 目录
+        # applications 下的文件，复制进 SDK 的 package
         cp -r applications/luci-app-netwiz sdk/package/
         sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' sdk/package/luci-app-netwiz/Makefile
         
@@ -46,17 +46,25 @@ jobs:
         make defconfig
         make package/luci-app-netwiz/compile V=s
 
+    # 从 Makefile 中提取版本号
+    - name: Get Version
+      id: get_version
+      run: |
+        # 使用 grep 和 cut 提取 PKG_VERSION 后的数值，并去掉可能的空格
+        VERSION=$(grep 'PKG_VERSION:=' applications/luci-app-netwiz/Makefile | cut -d'=' -f2 | tr -d ' ')
+        echo "pkg_version=$VERSION" >> $GITHUB_OUTPUT
+
     - name: Prepare Release Files
       run: |
         mkdir -p release_assets
         find sdk/bin/packages/ -name "luci-app-netwiz_*.*pk" -exec cp {} release_assets/ \;
         
-
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v1.0.0
-        name: "LuCI App Netwiz v1.0.0"
+        # 使用上面提取到的版本号
+        tag_name: v${{ steps.get_version.outputs.pkg_version }}
+        name: "LuCI App Netwiz v${{ steps.get_version.outputs.pkg_version }}"
         draft: false
         prerelease: false
         files: |
