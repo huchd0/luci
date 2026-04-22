@@ -8,7 +8,6 @@
 'require rpc';
 'require uci';
 
-// .po 文件匹配当前语言 (已移除所有容易导致 Bug 的隐形尾部空格)
 var T = {
     'TITLE': _('Netwiz NETWORK SETUP'),
     'SUBTITLE': _('Pure · Secure · Non-destructive Minimalist Config'),
@@ -208,7 +207,6 @@ return view.extend({
             '.nw-modal-btn-danger { background: #ef4444; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 15px; cursor: pointer; flex: 1; transition: background 0.2s; }',
             '.nw-modal-btn-danger:hover { background: #dc2626; }',
             
-            /* 【优雅的 CSS 魔法】：直接在这里给高亮文本加上左边距，替代写死在词条里的空格！ */
             '.nw-hl { color: #facc15; font-weight: bold; margin-left: 6px; }',
             
             '@media screen and (max-width: 768px) {',
@@ -318,7 +316,6 @@ return view.extend({
             '</div>'
         ].join('');
 
-        // {{KEY}} 替换为标准的 T['KEY'] 翻译
         for (var k in T) {
             htmlTemplate = htmlTemplate.replace(new RegExp('\\{\\{' + k + '\\}\\}', 'g'), T[k]);
         }
