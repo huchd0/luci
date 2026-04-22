@@ -23,20 +23,20 @@ jobs:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 【核心新增】：处理输入的版本号（防呆校验、补全、修改文件并推送）
+    # 处理输入的版本号防呆校验、补全、修改文件并推送
     - name: Handle Version Input
       id: version_handler
       run: |
         INPUT_VER="${{ github.event.inputs.new_version }}"
         
-        # 情况 1：输入框留空，标记为继续向下编译
+        # 输入框留空，标记为继续向下编译
         if [ -z "$INPUT_VER" ]; then
           echo "输入为空，将读取 Makefile 中的版本号进行编译..."
           echo "skip_build=false" >> $GITHUB_OUTPUT
           exit 0
         fi
         
-        # 情况 2：有输入，进行防呆校验（只允许数字，最多三段）
+        # 防呆校验（只允许数字，最多三段）
         if [[ ! "$INPUT_VER" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
           echo "::error::格式错误！防呆拦截：只允许输入纯数字（如 1）、两段式（如 1.2）或三段式（如 1.2.3）。"
           exit 1
@@ -71,8 +71,7 @@ jobs:
         # 标记为结束工作流，不再进行后续的 SDK 编译
         echo "skip_build=true" >> $GITHUB_OUTPUT
 
-    # ================= 以下所有步骤都增加了 if 判断 =================
-    # 只有当 skip_build 不为 true（即留空时），才会执行这些编译步骤
+    # 当 skip_build 留空时，才会执行这些编译步骤
 
     - name: Setup Build Environment
       if: steps.version_handler.outputs.skip_build != 'true'
