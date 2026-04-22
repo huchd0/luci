@@ -91,29 +91,36 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
-        # --- 步骤 A: 编译 IPK 格式 ---
+        # --- 编译 IPK 格式 ---
         echo ">>> 正在编译 IPK 格式 <<<"
+        rm -f .config
         make defconfig
-        # 确保不启用 APK 选项
         sed -i 's/CONFIG_USE_APK=y/# CONFIG_USE_APK is not set/' .config || true
-        make package/luci-app-netwiz/compile V=s
+        # 指定不使用 APK
+        make package/luci-app-netwiz/compile V=s CONFIG_USE_APK=
+        
         # 移动生成的 IPK
         find bin/packages/ -name "luci-app-netwiz_*.ipk" -exec cp {} ../release_assets/ \;
         
-        # 清理以便进行下一轮编译
+        # 彻底清理残留，防止 SDK 偷懒跳过第二步
         make package/luci-app-netwiz/clean
+        rm -rf bin/packages/
         
-        # --- 步骤 B: 编译 APK 格式 ---
+        # 编译 APK 格式 ---
         echo ">>> 正在编译 APK 格式 <<<"
-        # 强力注入并锁定 APK 选项
-        echo "CONFIG_USE_APK=y" >> .config
+        rm -f .config
+        echo "CONFIG_USE_APK=y" > .config
         make defconfig
-        # 检查 defconfig 是否把选项删了，如果没有则补上
-        grep -q "CONFIG_USE_APK=y" .config || echo "CONFIG_USE_APK=y" >> .config
         
-        make package/luci-app-netwiz/compile V=s
-        # 移动生成的 APK (注意：部分 SDK 即使生成了 APK 也会存放在相同目录)
-        find bin/packages/ -name "luci-app-netwiz_*.*pk" -exec cp {} ../release_assets/ \;
+        # 在 make 命令后面跟上变量，强行覆盖所有底层默认规则！
+        make package/luci-app-netwiz/compile V=s CONFIG_USE_APK=y USE_APK=1
+        
+        # 移动生成的 APK
+        find bin/packages/ -name "luci-app-netwiz_*.apk" -exec cp {} ../release_assets/ \;
+        
+        # 打印一下最终生成了什么，方便我们确认
+        echo "=== 检查 release_assets 目录生成的文件 ==="
+        ls -lh ../release_assets/
 
     # 获取当前 Makefile 中的版本号用于发布
     - name: Get Version
@@ -133,6 +140,6 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          release_assets/luci-app-netwiz_*.*pk
+          release_assets/*.*pk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
