@@ -7,7 +7,7 @@ msgstr ""
 msgid "Network Wizard"
 msgstr "网络向导"
 
-msgid "NETWORK SETUP"
+msgid "Netwiz NETWORK SETUP"
 msgstr "Netwiz 网 络 设 置 向 导"
 
 msgid "Pure · Secure · Non-destructive Minimalist Config"
