@@ -136,35 +136,35 @@ msgstr "二級路由 (靜態 IP)"
 msgid "LAN Mode"
 msgstr "區域網路模式"
 
-msgid "Device IP: "
-msgstr "本機 IP: "
+msgid "Device IP:"
+msgstr "本機 IP:"
 
-msgid "Upstream GW: "
-msgstr "上級閘道器: "
+msgid "Upstream GW:"
+msgstr "上級閘道器:"
 
-msgid "Public IP: "
-msgstr "公網 IP: "
+msgid "Public IP:"
+msgstr "公網 IP:"
 
-msgid "Remote GW: "
-msgstr "遠端閘道器: "
+msgid "Remote GW:"
+msgstr "遠端閘道器:"
 
-msgid "LAN IP: "
-msgstr "區域網路 IP: "
+msgid "LAN IP:"
+msgstr "區域網路 IP:"
 
-msgid "Status: "
-msgstr "狀態: "
+msgid "Status:"
+msgstr "狀態:"
 
 msgid "Waiting for remote response"
 msgstr "等待遠端響應"
 
-msgid "WAN IP: "
-msgstr "WAN IP: "
+msgid "WAN IP:"
+msgstr "WAN IP:"
 
 msgid "Getting IP..."
 msgstr "獲取 IP 中"
 
-msgid "DHCP Service: "
-msgstr "DHCP 服務: "
+msgid "DHCP Service:"
+msgstr "DHCP 服務:"
 
 msgid "Enabled"
 msgstr "開啟"
