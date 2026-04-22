@@ -1,10 +1,10 @@
-name: NetWiz 自动编译与发布 (双格式版)
+name: NetWiz 自动编译与发布
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: '🔖 版本号 (Auto 读取上一版本并递增，支持手动指定如 v1.0.0)'
+        description: '🔖 版本号 (Auto 自动读取上一版本并递增 +0.0.1，支持手动指定（如 v1.0.0）)'
         required: true
         default: 'Auto'
       highlights:
@@ -12,19 +12,14 @@ on:
         required: false
         default: '常规维护与稳定性更新。'
 
-permissions:
-  contents: write 
-
 jobs:
-  # ==========================================
-  # 阶段 1：智能计算版本号，并写入代码库
-  # ==========================================
-  prepare:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04
     outputs:
       final_version: ${{ steps.calc_version.outputs.FINAL_VERSION }}
+        
     steps:
-      - name: 检出代码
+      - name: 检出代码 (Checkout)
         uses: actions/checkout@v4
 
       - name: 🤖 智能计算下一个版本号
@@ -45,53 +40,36 @@ jobs:
             fi
           else
             if [[ ! "$INPUT_VER" =~ ^[vV]?[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
-              echo "::error::❌ 版本号格式错误，请填写如 1.2 或 v1.2.3 的标准格式。"
+              echo "::error::❌ 版本号格式拦截：您输入了非法的版本号『 $INPUT_VER 』！请填写类似 1.2 或 v1.2.3 的标准格式。"
               exit 1
             fi
             CLEAN_VER=$(echo "$INPUT_VER" | sed -e 's/^[vV]//')
             NEW_VER="v$CLEAN_VER"
           fi
           echo "FINAL_VERSION=$NEW_VER" >> $GITHUB_OUTPUT
+          echo "🎯 确定的本次发版版本号为: $NEW_VER"
 
-      - name: 自动注入版本号到前端 JS 与 Makefile
+      - name: 自动注入最新版本号到 JS 前端 和 Makefile
         run: |
+          # 提取纯数字版本号
           RAW_VER=$(echo "${{ steps.calc_version.outputs.FINAL_VERSION }}" | sed -e 's/^[vV]//')
           
-          # 1. 注入 JS 
-          sed -i "s/var CURRENT_VERSION = '.*';/var CURRENT_VERSION = '${{ steps.calc_version.outputs.FINAL_VERSION }}';/g" luci-app-netwiz/root/www/luci-static/resources/view/netwiz.js || true
-          
-          # 2. 注入 Makefile
-          sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=$RAW_VER/g" luci-app-netwiz/Makefile || true
-          
-          # 3. 提交变更回仓库
+          # 【注意】如果您的代码直接在仓库根目录，请把前面的 luci-app-netwiz/ 删掉，改为 ./
+          # 1. 注入 JS 版本号 (如果您在 JS 里写了 CURRENT_VERSION 变量，可以解除下方注释)
+          # sed -i "s/var CURRENT_VERSION = '.*';/var CURRENT_VERSION = '${{ steps.calc_version.outputs.FINAL_VERSION }}';/g" root/www/luci-static/resources/view/netwiz.js
+
+          # 2. 注入 Makefile 版本号
+          sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=$RAW_VER/g" Makefile
+
+          # (可选) 自动提交版本号变更到源码仓库
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add luci-app-netwiz/root/www/luci-static/resources/view/netwiz.js luci-app-netwiz/Makefile || true
+          git add Makefile
           if ! git diff --cached --quiet; then
             git commit -m "chore: bump version to $RAW_VER"
             git push
           fi
 
-  # ==========================================
-  # 阶段 2：矩阵并发编译 (IPK 与 APK 双管齐下)
-  # ==========================================
-  build:
-    needs: prepare
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # 分别使用 23.05 (生成 ipk) 和 24.10 (生成 apk) 的原生 SDK
-        include:
-          - format: "ipk"
-            sdk_url: "https://downloads.immortalwrt.org/releases/23.05.4/targets/x86/64/immortalwrt-sdk-23.05.4-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
-          - format: "apk"
-            sdk_url: "https://downloads.immortalwrt.org/releases/24.10.0/targets/x86/64/immortalwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-    steps:
-      - name: 检出最新代码 (包含刚修改的版本号)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-          
       - name: 🛠️ 准备本地编译环境
         run: |
           sudo apt-get update
@@ -99,59 +77,63 @@ jobs:
           gettext git libncurses5-dev libssl-dev rsync unzip zlib1g-dev file wget python3-setuptools \
           python3-dev zstd cmake ninja-build pkg-config
 
-      - name: 下载并配置对应格式的 SDK (${{ matrix.format }})
+      - name: 下载并配置 ImmortalWrt SDK
         run: |
-          wget -qO sdk_archive "${{ matrix.sdk_url }}"
-          tar xf sdk_archive
+          wget -qO sdk.tar.zst "https://downloads.immortalwrt.org/releases/24.10.0/targets/x86/64/immortalwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          tar xf sdk.tar.zst
           mv immortalwrt-sdk-*/ sdk
           
-          # 精准拷贝您子目录中的代码进入 SDK
           mkdir -p sdk/package/luci-app-netwiz
-          cp -r luci-app-netwiz/* sdk/package/luci-app-netwiz/
+          # 将当前仓库文件拷贝进 SDK (排除了 .github 文件夹避免不必要的复制)
+          rsync -av --exclude='.github' ./ sdk/package/luci-app-netwiz/
 
-      - name: ⚙️ 编译 LuCI 插件
+      - name: ⚙️ 单次全量编译 (同时生成 IPK 与 APK)
         run: |
+          mkdir -p release_pkgs
           cd sdk
           ./scripts/feeds update -a
           ./scripts/feeds install -a
           
-          # 仅针对 APK 环境注入强制开关
-          if [ "${{ matrix.format }}" == "apk" ]; then
-            echo "CONFIG_USE_APK=y" >> .config
-          fi
-          
+          # [1/2] 编译传统的 .ipk 格式
           make defconfig
           make package/luci-app-netwiz/compile V=s
+          # 提取并重命名为固定文件名
+          find bin/packages/ -name "luci-app-netwiz_*.ipk" -exec cp {} ../release_pkgs/luci-app-netwiz.ipk \;
           
-          # 提取并重命名为统一文件名 (luci-app-netwiz.ipk / luci-app-netwiz.apk)
-          mkdir -p ../release_pkgs
-          find bin/packages/ -name "luci-app-netwiz*.${{ matrix.format }}" -exec cp {} ../release_pkgs/luci-app-netwiz.${{ matrix.format }} \;
+          make package/luci-app-netwiz/clean
+          
+          # [2/2] 强行注入配置，编译最新的 .apk 格式
+          echo "CONFIG_USE_APK=y" >> .config
+          make defconfig 
+          make package/luci-app-netwiz/compile V=s
+          # 提取并重命名为固定文件名
+          find bin/packages/ -name "luci-app-netwiz_*.apk" -exec cp {} ../release_pkgs/luci-app-netwiz.apk \;
 
-      - name: 上传当前矩阵的编译产物
+      - name: 上传编译产物到云端缓存
         uses: actions/upload-artifact@v4
         with:
-          name: pkg-${{ matrix.format }}
+          name: final-packages
           path: release_pkgs/*
           compression-level: 0 
 
-  # ==========================================
-  # 阶段 3：汇总发版并清理
-  # ==========================================
   release:
-    needs: [prepare, build]
+    needs: build 
     runs-on: ubuntu-latest
+    permissions:
+      contents: write 
+      
     steps:
-      - name: 下载合并双格式编译产物
+      - name: 下载编译产物
         uses: actions/download-artifact@v4
         with:
+          name: final-packages
           path: final_release
-          merge-multiple: true 
 
       - name: 自动创建 GitHub Release 发布页
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.prepare.outputs.final_version }}
-          name: NetWiz ${{ needs.prepare.outputs.final_version }} 最新安装版
+          tag_name: ${{ needs.build.outputs.final_version }}
+          name: NetWiz ${{ needs.build.outputs.final_version }} 最新安装版
           body: |
             ### ✨ 最新版发布
             ${{ github.event.inputs.highlights }}
@@ -167,16 +149,19 @@ jobs:
           files: final_release/*
           generate_release_notes: false
 
-      - name: 🧹 自动清理历史旧版本
+      - name: 🧹 极简主义：自动清理历史旧版本
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CURRENT_TAG="${{ needs.prepare.outputs.final_version }}"
+          echo "正在清理历史发布版本，保持主页极简..."
+          sleep 3
+          CURRENT_TAG="${{ needs.build.outputs.final_version }}"
           REPO="${{ github.repository }}"
           ALL_TAGS=$(gh release list -R "$REPO" --limit 100 --json tagName -q '.[].tagName')
           
           for tag in $ALL_TAGS; do
             if [ "$tag" != "$CURRENT_TAG" ] && [ -n "$tag" ]; then
+              echo "🎯 锁定并删除旧版本: $tag"
               gh release delete "$tag" -R "$REPO" --cleanup-tag -y || true
             fi
           done
