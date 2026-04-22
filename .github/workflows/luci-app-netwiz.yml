@@ -64,10 +64,10 @@ jobs:
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
         sudo apt-get update
-        # 【修复关键 1】：在系统环境里直接安装 apk-tools (Alpine 的包管理器)
+        # 【修复点 1】：去掉了报错的 apk-tools，让 Ubuntu 顺畅安装其它底层必备工具
         sudo apt-get install -y build-essential clang flex bison g++ gawk gcc-multilib g++-multilib \
         gettext git libncurses5-dev libssl-dev rsync unzip zlib1g-dev file wget python3-setuptools \
-        python3-dev zstd cmake ninja-build pkg-config apk-tools
+        python3-dev zstd cmake ninja-build pkg-config
 
     - name: Download and Setup SDK
       if: steps.version_handler.outputs.skip_build != 'true'
@@ -89,9 +89,14 @@ jobs:
         mkdir -p release_assets
         cd sdk
         
-        # 【修复关键 2】：“借鸡生蛋”：把刚安装的系统 apk 指令链接进 SDK 的工具目录，彻底消灭 Error 127
-        mkdir -p staging_dir/host/bin
-        ln -sf $(which apk) staging_dir/host/bin/apk
+        # 【修复点 2】：利用爬虫脚本，直接从 Alpine 官方 CDN 扒出最新版的静态 apk 核心
+        echo ">>> 安装原生 apk 静态环境 <<<"
+        mkdir -p staging_dir/host/bin /tmp/apk-tools
+        APK_FILE=$(curl -sL https://dl-cdn.alpinelinux.org/alpine/latest-stable/main/x86_64/ | grep -o 'apk-tools-static-[^"]*\.apk' | head -n 1)
+        wget -qO- "https://dl-cdn.alpinelinux.org/alpine/latest-stable/main/x86_64/$APK_FILE" | tar -xz -C /tmp/apk-tools
+        # 将静态执行文件移动到 SDK 的御用位置，并赋予执行权限
+        mv /tmp/apk-tools/sbin/apk.static staging_dir/host/bin/apk
+        chmod +x staging_dir/host/bin/apk
         
         ./scripts/feeds update -a
         ./scripts/feeds install -a
@@ -101,7 +106,6 @@ jobs:
         
         # --- 1. 编译 IPK ---
         echo ">>> 开始编译 IPK 格式 <<<"
-        # 强制指明不使用 APK 引擎
         make package/luci-app-netwiz/compile V=s CONFIG_USE_APK= USE_APK=0
         find bin/packages/ -name "luci-app-netwiz_*.ipk" -exec cp {} ../release_assets/ \;
         
@@ -116,7 +120,6 @@ jobs:
         echo "CONFIG_USE_APK=y" >> .config
         make defconfig 
         
-        # 【修复关键 3】：去掉了篡改架构的代码，只在最高优先级的命令后注入 APK 开关
         make package/luci-app-netwiz/compile V=s USE_APK=1 CONFIG_USE_APK=y
         
         find bin/packages/ -name "luci-app-netwiz_*.apk" -exec cp {} ../release_assets/ \;
