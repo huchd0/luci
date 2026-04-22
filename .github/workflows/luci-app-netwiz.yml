@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       new_version:
-        description: '【修改版本号】例如 1, 1.2, 1.2.3。填入并运行将更新 Makefile 并结束；留空则直接读取原版本并编译。'
+        description: '【修改版本号】例如 1, 1.2, 1.2.3。填入后将更新 Makefile 并保存，不发版；留空则读取当前版本并进行双格式(IPK+APK)发版编译。'
         required: false
         type: string
 
@@ -23,56 +23,43 @@ jobs:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 处理输入的版本号防呆校验、补全、修改文件并推送
+    # 智能版本号处理
     - name: Handle Version Input
       id: version_handler
       run: |
         INPUT_VER="${{ github.event.inputs.new_version }}"
-        
-        # 输入框留空，标记为继续向下编译
         if [ -z "$INPUT_VER" ]; then
-          echo "输入为空，将读取 Makefile 中的版本号进行编译..."
+          echo "输入为空，准备读取现有版本号并进行完整编译..."
           echo "skip_build=false" >> $GITHUB_OUTPUT
           exit 0
         fi
         
-        # 防呆校验（只允许数字，最多三段）
         if [[ ! "$INPUT_VER" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
-          echo "::error::格式错误！防呆拦截：只允许输入纯数字（如 1）、两段式（如 1.2）或三段式（如 1.2.3）。"
+          echo "::error::格式错误！只允许输入数字，如 1, 1.2 或 1.2.3。"
           exit 1
         fi
         
-        # 补全为三段式版本号
         IFS='.' read -r -a parts <<< "$INPUT_VER"
         V1=${parts[0]:-0}
         V2=${parts[1]:-0}
         V3=${parts[2]:-0}
         NEW_VERSION="${V1}.${V2}.${V3}"
         
-        echo "标准化后的版本号为: $NEW_VERSION"
-        
-        # 写入 Makefile
         sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=$NEW_VERSION/g" applications/luci-app-netwiz/Makefile
-        
-        # 提交并推送到 GitHub 仓库
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add applications/luci-app-netwiz/Makefile
         
-        # 检查是否真的有变化，防止输入跟原来一样的版本号导致 git 报错
         if git diff --cached --quiet; then
-          echo "版本号未发生实际改变，无需提交。"
+          echo "版本号未改变。"
         else
           git commit -m "chore: bump version to $NEW_VERSION"
           git push
-          echo "成功将版本号 $NEW_VERSION 写入 Makefile 并保存到仓库！"
         fi
         
-        # 标记为结束工作流，不再进行后续的 SDK 编译
         echo "skip_build=true" >> $GITHUB_OUTPUT
 
-    # 当 skip_build 留空时，才会执行这些编译步骤
-
+    # 仅留空时执行
     - name: Setup Build Environment
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
@@ -93,17 +80,31 @@ jobs:
       run: |
         cp -r applications/luci-app-netwiz sdk/package/
         sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' sdk/package/luci-app-netwiz/Makefile
-        
-    - name: Compile the Plugin
+
+    # IPK & APK编译
+    - name: Compile and Collect Packages (IPK & APK)
       if: steps.version_handler.outputs.skip_build != 'true'
       run: |
+        mkdir -p release_assets
         cd sdk
         ./scripts/feeds update -a
         ./scripts/feeds install -a
-        echo "CONFIG_USE_APK=y" >> .config
+        
+        echo ">>> 开始编译 IPK 格式 <<<"
         make defconfig
         make package/luci-app-netwiz/compile V=s
+        find bin/packages/ -name "luci-app-netwiz_*.ipk" -exec cp {} ../release_assets/ \;
+        
+        echo ">>> 清理缓存，准备生成新格式 <<<"
+        make package/luci-app-netwiz/clean
+        
+        echo ">>> 开始编译 APK 格式 <<<"
+        echo "CONFIG_USE_APK=y" >> .config
+        make defconfig 
+        make package/luci-app-netwiz/compile V=s
+        find bin/packages/ -name "luci-app-netwiz_*.apk" -exec cp {} ../release_assets/ \;
 
+    # 获取版本号
     - name: Get Version
       if: steps.version_handler.outputs.skip_build != 'true'
       id: get_version
@@ -111,12 +112,7 @@ jobs:
         VERSION=$(grep 'PKG_VERSION:=' applications/luci-app-netwiz/Makefile | cut -d'=' -f2 | tr -d ' ')
         echo "pkg_version=$VERSION" >> $GITHUB_OUTPUT
 
-    - name: Prepare Release Files
-      if: steps.version_handler.outputs.skip_build != 'true'
-      run: |
-        mkdir -p release_assets
-        find sdk/bin/packages/ -name "luci-app-netwiz_*.*pk" -exec cp {} release_assets/ \;
-        
+    # 发布到 Releases
     - name: Create Release and Upload Assets
       if: steps.version_handler.outputs.skip_build != 'true'
       uses: softprops/action-gh-release@v2
