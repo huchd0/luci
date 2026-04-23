@@ -59,6 +59,8 @@ jobs:
           rm -rf *
           cp -r /tmp/pure_plugin/luci-app-netwiz ./
           sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' luci-app-netwiz/Makefile
+          # 打包前赋予后端脚本执行权限
+          chmod +x luci/applications/luci-app-netwiz/root/usr/libexec/rpcd/netwiz
 
       - name: 编译
         uses: sbwml/openwrt-gh-action-sdk@main   
