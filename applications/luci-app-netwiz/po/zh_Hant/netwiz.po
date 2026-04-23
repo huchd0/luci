@@ -269,7 +269,7 @@ msgid "Subnet Error"
 msgstr "網段錯誤"
 
 msgid "The WAN Static IP must be in the same subnet as the Gateway!<br>e.g., if gateway is "
-msgstr "WAN 埠的「靜態 IP」必須與上層「閘道器」處於同一網段！<br>例如：閘道器是 "
+msgstr "WAN 靜態 IP 必須與閘道器在同一網段！<br>例如，如果閘道器是 "
 
 msgid ", the IP must be "
 msgstr "，則 IP 必須是 "
