@@ -17,11 +17,10 @@ It is designed to be highly user-friendly for novices setting up secondary route
 
 ### Key Features
 * **Pure CSR Architecture:** Built with modern Client-Side Rendering.
-* **Safe Configuration:** Prevents routing loops and network conflicts (e.g., stops users from putting WAN and LAN in the same subnet).
-* **Bypass Router Mode (旁路由):** Auto-configures DHCP and gateway settings safely.
-* **Smooth UX:** Replaces traditional dirty hacks with standard `ubus call luci reload` to solve SPA cache issues without interrupting the user session.
-* **Multi-language:** Built-in i18n support (English, zh-Hans, zh-Hant).
-* **Strict ACL:** Frontend has zero direct write access to UCI. All modifications are safely encapsulated within the backend `rpcd` script.
+* **Pure Frontend Architecture**: Developed using the latest LuCI JS architecture, no legacy Lua rendering.
+* **Strict Validation**: Built-in comprehensive logic validation (e.g., subnet conflict, empty values) to prevent routing loops and network outages.
+* **Modern UI**: Clean and responsive card-based design with perfect CSS isolation to adapt to any OpenWrt themes (Argon, Bootstrap, etc.).
+* **i18n Support**: Full support for English, zh-cn, and zh-tw.
 
 ### Breadcrumb Trail
 * 👉 **System -> Network Wizard**。
