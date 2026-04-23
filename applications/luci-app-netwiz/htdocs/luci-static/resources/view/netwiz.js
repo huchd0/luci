@@ -9,6 +9,7 @@
 'require uci';
 
 var T = {
+    'Network Wizard': _('Network Wizard'),
     'TITLE': _('Netwiz NETWORK SETUP'),
     'SUBTITLE': _('Pure · Secure · Non-destructive Minimalist Config'),
     'MODE_ROUTER_TITLE': _('Secondary Router Mode'),
