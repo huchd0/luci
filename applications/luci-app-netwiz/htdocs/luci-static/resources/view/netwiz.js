@@ -40,7 +40,7 @@ var T = {
     'LBL_LAN_GW': _('LAN Gateway'),
     'PH_LAN_GW': _('Blank for Main, required for Bypass'),
     'BTN_BACK': _('Back'),
-    'BTN_NEXT': _('Next Step'),  // ✅ 已修改为独一无二的词
+    'BTN_NEXT': _('Next Step'),
     'BTN_EDIT': _('Back to Edit'),
     'TITLE_CONFIRM': _('Confirm Configuration'),
     'DESC_CONFIRM': _('The following settings will be applied, please verify:'),
@@ -65,7 +65,7 @@ var T = {
     'TXT_DHCP_SRV': _('DHCP Service:'),
     'TXT_ON': _('Enabled'),
     'TXT_OFF': _('Disabled'),
-    'BDG_SUCC': _('Dial Success'), // ✅ 已修改为独一无二的词
+    'BDG_SUCC': _('Dial Success'),
     'BDG_DIAL': _('Dialing / Disconnected'),
     'BDG_GOT': _('IP Acquired'),
     'BDG_WAIT': _('Waiting for IP...'),
@@ -92,16 +92,18 @@ var T = {
     'M_NO_MOD_MSG': _('Your settings match the current router config exactly.'),
     'M_EXIT': _('Exit to Home'),
     'M_CFLT_TIT': _('Conflict Blocked'),
-    'M_CFLT_IP1': _('The WAN IP cannot be the same as the current LAN IP ('),
-    'M_CFLT_IP2': _(')!'),
-    'M_CFLT_SUB1': _('The WAN port cannot be in the same subnet as the LAN ('),
-    'M_CFLT_SUB2': _(')!<br>This causes a routing loop.'),
+    
+    // 使用 {ip} 和 {gw} 占位符替代所有碎裂的字符串拼接
+    'M_CFLT_IP': _('The WAN IP cannot be the same as the current LAN IP ({ip})!'),
+    'M_CFLT_SUB1': _('The WAN port cannot be in the same subnet as the LAN ({ip})!'),
+    'M_CFLT_SUB2': _('This causes a routing loop.'),
     'M_SUB_ERR_TIT': _('Subnet Error'),
-    'M_SUB_ERR_WAN': _('The WAN Static IP must be in the same subnet as the Gateway!<br>e.g., if gateway is '),
-    'M_SUB_ERR_WAN2': _(', the IP must be '),
+    'M_SUB_ERR_WAN1': _('The WAN Static IP must be in the same subnet as the Gateway!'),
+    'M_SUB_ERR_WAN2': _('e.g., if gateway is {gw}, the IP must be {ip}.x'),
     'M_SUB_ERR_BYP': _('The Bypass Device IP must be in the same subnet as the Gateway!'),
-    'M_CFLT_LAN_IP1': _('LAN IP cannot be the same as the existing WAN IP ('),
-    'M_CFLT_LAN_SUB1': _('LAN cannot be in the same subnet as WAN ('),
+    'M_CFLT_LAN_IP': _('LAN IP cannot be the same as the existing WAN IP ({ip})!'),
+    'M_CFLT_LAN_SUB': _('LAN cannot be in the same subnet as WAN ({ip})!'),
+    
     'M_WARN_TIT': _('Config Warning'),
     'M_WARN_MSG': _('You selected [Main Router Mode] but filled in the [Gateway].<br><br><b>For a standard main router, the gateway must be blank.</b> Entering a gateway may cause the device to fail at distributing network, leading to a total outage!<br><br>Are you sure you want to do this?'),
     'M_WARN_BTN': _('Force Apply'),
@@ -110,12 +112,18 @@ var T = {
     'M_APP_TIT': _('Applying Config'),
     'M_APP_MSG': _('Writing request, please wait...'),
     'M_SUCC_TIT': _('Config Applied'),
-    'M_SUCC_MSG1': _('Since the IP has changed to <b style="color:#3b82f6;">'),
-    'M_SUCC_MSG2': _('</b>,<br>the system will attempt to redirect to the new address in 15 seconds.<br><br><small>Note: You will need to log in again.</small>'),
+    
+    // 重构弹窗信息的纯净度
+    'M_SUCC_MSG1': _('Since the IP has changed to {ip},'),
+    'M_SUCC_MSG2': _('the system will attempt to redirect to the new address in 15 seconds.'),
+    'M_SUCC_MSG3': _('Note: You will need to log in again.'),
+    
     'M_RST_TIT': _('Applying Configuration'),
     'M_RST_MSG': _('Underlying network is resetting, please wait...<br><br><span style="font-size: 14px; color: #555;">(If it does not automatically return in 15s, manually refresh)</span>'),
     'M_FAIL_TIT': _('❌ Write Failed'),
-    'M_FAIL_MSG': _('Underlying call exception, please try logging in again.<br><small>Error code: '),
+    'M_FAIL_MSG': _('Underlying call exception, please try logging in again.'),
+    'M_FAIL_CODE': _('Error code: {code}'),
+    
     'M_CLOSE': _('Close'),
     'M_ACCT': _('Account'),
     'M_PWD': _('Password'),
@@ -423,10 +431,27 @@ return view.extend({
                 uci.load('network').then(function() {
                     var currentLanIp = safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0], currentLanGw = safeUciGet('network', 'lan', 'gateway', ''), currentWanProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
                     var currentWanIp = (currentWanProto === 'static') ? safeUciGet('network', 'wan', 'ipaddr', '').split('/')[0] : '', currentWanGw = safeUciGet('network', 'wan', 'gateway', ''), currentBypass = (safeUciGet('dhcp', 'lan', 'ignore', '') === '1' ? '1' : '0'), newBypass = bypassToggle.checked ? '1' : '0';
-                    if ((selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass) || (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) || (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp')) { openModal({title: T['M_NO_MOD_TIT'], msg: T['M_NO_MOD_MSG'], okText: T['M_EXIT'], onOk: returnToStep1 }); return; }
-                    if (selectedMode === 'router' && rType === 'static') { if (targetIp === currentLanIp || isSameSubnet(targetIp, currentLanIp)) { openModal({title:T['M_CFLT_TIT'], msg: (targetIp === currentLanIp ? T['M_CFLT_IP1']+currentLanIp+T['M_CFLT_IP2'] : T['M_CFLT_SUB1']+currentLanIp+T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; } if (targetIp === targetGw || !isSameSubnet(targetIp, targetGw)) { openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_GW']:T['M_SUB_ERR_WAN']+targetGw+T['M_SUB_ERR_WAN2']+targetGw.substring(0, targetGw.lastIndexOf('.'))+'.x。'), okText:T['BTN_EDIT']}); return; } }
                     
-                    if (selectedMode === 'lan') { if (isBypass && (targetIp === targetGw || !isSameSubnet(targetIp, targetGw))) { openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_BYP']:T['M_SUB_ERR_BYP']), okText:T['BTN_EDIT']}); return; } if (currentWanIp && (targetIp === currentWanIp || isSameSubnet(targetIp, currentWanIp))) { openModal({title:T['M_CFLT_TIT'], msg:(targetIp===currentWanIp?T['M_CFLT_LAN_IP1']+currentWanIp+T['M_CFLT_IP2']:T['M_CFLT_LAN_SUB1']+currentWanIp+T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; } }
+                    if ((selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass) || (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) || (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp')) { openModal({title: T['M_NO_MOD_TIT'], msg: T['M_NO_MOD_MSG'], okText: T['M_EXIT'], onOk: returnToStep1 }); return; }
+                    
+                    // 调用 {ip} 和 {gw} 占位符进行纯净替换
+                    if (selectedMode === 'router' && rType === 'static') { 
+                        if (targetIp === currentLanIp || isSameSubnet(targetIp, currentLanIp)) { 
+                            openModal({title:T['M_CFLT_TIT'], msg: (targetIp === currentLanIp ? T['M_CFLT_IP'].replace('{ip}', currentLanIp) : T['M_CFLT_SUB1'].replace('{ip}', currentLanIp) + '<br>' + T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; 
+                        } 
+                        if (targetIp === targetGw || !isSameSubnet(targetIp, targetGw)) { 
+                            openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_GW'] : T['M_SUB_ERR_WAN1'] + '<br>' + T['M_SUB_ERR_WAN2'].replace('{gw}', targetGw).replace('{ip}', targetGw.substring(0, targetGw.lastIndexOf('.')))), okText:T['BTN_EDIT']}); return; 
+                        } 
+                    }
+                    
+                    if (selectedMode === 'lan') { 
+                        if (isBypass && (targetIp === targetGw || !isSameSubnet(targetIp, targetGw))) { 
+                            openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_BYP']:T['M_SUB_ERR_BYP']), okText:T['BTN_EDIT']}); return; 
+                        } 
+                        if (currentWanIp && (targetIp === currentWanIp || isSameSubnet(targetIp, currentWanIp))) { 
+                            openModal({title:T['M_CFLT_TIT'], msg:(targetIp===currentWanIp ? T['M_CFLT_LAN_IP'].replace('{ip}', currentWanIp) : T['M_CFLT_LAN_SUB'].replace('{ip}', currentWanIp) + '<br>' + T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; 
+                        } 
+                    }
 
                     var b = function(t, p) { var h = "<div style='text-align:center; font-size:18px; margin-bottom:15px;'>" + t + "</div><div style='background:rgba(0,0,0,0.15); border-radius:8px; padding:10px 15px; font-size:14.5px;'>"; for (var i=0; i < p.length; i++) h += "<div style='display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);'><span style='opacity:0.8;'>" + p[i][0] + "</span><span style='font-family:monospace;'>" + p[i][1] + "</span></div>"; return h + "</div>"; };
                     if (selectedMode === 'lan') confirmText.innerHTML = b(isBypass ? T['MODE_LAN_TITLE']+" - "+T['STAT_BYPASS'] : T['MODE_LAN_TITLE']+" - "+T['STAT_LAN'], [[T['TXT_DEV_IP'].replace(':',''), targetIp], [T['LBL_GW'], targetGw || T['TXT_NOT_SET']], ["DHCP", isBypass ? T['TXT_OFF'] : T['TXT_ON']]]);
@@ -449,10 +474,24 @@ return view.extend({
             var start = Date.now(), done = false;
             var succ = function() {
                 var h = window.location.hostname, ts = new Date().getTime();
-                if (selectedMode === 'lan' && a1 && a1 !== h) { openModal({ title: T['M_SUCC_TIT'], msg: T['M_SUCC_MSG1'] + a1 + T['M_SUCC_MSG2'], spin: true }); setTimeout(function() { window.location.href = 'http://' + a1 + '?v=' + ts; }, 15000);
-                } else { openModal({ title: T['M_RST_TIT'], msg: T['M_RST_MSG'], spin: true }); setTimeout(function() { window.location.href = window.location.href.split('?')[0] + '?v=' + ts; }, 15000); }
+                if (selectedMode === 'lan' && a1 && a1 !== h) { 
+                    var succHtml = T['M_SUCC_MSG1'].replace('{ip}', '<b style="color:#3b82f6;">' + a1 + '</b>') + '<br>' + T['M_SUCC_MSG2'] + '<br><br><small>' + T['M_SUCC_MSG3'] + '</small>';
+                    openModal({ title: T['M_SUCC_TIT'], msg: succHtml, spin: true }); 
+                    setTimeout(function() { window.location.href = 'http://' + a1 + '?v=' + ts; }, 15000);
+                } else { 
+                    openModal({ title: T['M_RST_TIT'], msg: T['M_RST_MSG'], spin: true }); 
+                    setTimeout(function() { window.location.href = window.location.href.split('?')[0] + '?v=' + ts; }, 15000); 
+                }
             };
-            callNetSetup(mode, a1, a2, a3, a4).then(function() { done = true; succ(); }).catch(function(e){ if (Date.now() - start < 1500) { done = true; openModal({ title: T['M_FAIL_TIT'], msg: T['M_FAIL_MSG'] + (e.message || 'Unknown') + '</small>', okText: T['M_CLOSE'], isDanger: true }); } else { done = true; succ(); } });
+            callNetSetup(mode, a1, a2, a3, a4).then(function() { done = true; succ(); }).catch(function(e){ 
+                if (Date.now() - start < 1500) { 
+                    done = true; 
+                    var failHtml = T['M_FAIL_MSG'] + '<br><small>' + T['M_FAIL_CODE'].replace('{code}', (e.message || 'Unknown')) + '</small>';
+                    openModal({ title: T['M_FAIL_TIT'], msg: failHtml, okText: T['M_CLOSE'], isDanger: true }); 
+                } else { 
+                    done = true; succ(); 
+                } 
+            });
             setTimeout(function() { if (!done) succ(); }, 8000);
         });
     }
