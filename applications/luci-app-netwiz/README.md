@@ -19,7 +19,7 @@ It is designed to be highly user-friendly for novices setting up secondary route
 * **Pure CSR Architecture:** Built with modern Client-Side Rendering.
 * **Pure Frontend Architecture**: Developed using the latest LuCI JS architecture, no legacy Lua rendering.
 * **Strict Validation**: Built-in comprehensive logic validation (e.g., subnet conflict, empty values) to prevent routing loops and network outages.
-* **Modern UI**: Clean and responsive card-based design with perfect CSS isolation to adapt to any OpenWrt themes (Argon, Bootstrap, etc.).
+* **Modern UI**: Clean and responsive card-based design with perfect CSS isolation to adapt to any OpenWrt/immortalwrt themes (Argon, Bootstrap, etc.).
 * **i18n Support**: Full support for English, zh-cn, and zh-tw.
 
 ### Breadcrumb Trail
