@@ -177,7 +177,6 @@ return view.extend({
             '.nw-top-back svg { width: 20px; height: 20px; }',
             '.nw-step-title { text-align: center; margin-bottom: 30px; color: #111; font-weight: 600; font-size: 20px; }',
             
-            /* 【核心修复】：为表单元素套上最高优先级防弹衣，彻底免疫原生主题污染 */
             '.nw-form-area .nw-value { border: none !important; padding: 12px 0 !important; display: flex !important; flex-direction: column !important; width: 100% !important; margin: 0 !important; background: transparent !important; }',
             '.nw-form-area .nw-value-title { text-align: left !important; font-weight: 600 !important; color: #334155 !important; font-size: 14.5px !important; margin: 0 0 10px 4px !important; line-height: 1.2 !important; display: block !important; padding: 0 !important; width: auto !important; float: none !important; }',
             '.nw-form-area .nw-value-field { width: 100% !important; margin: 0 !important; padding: 0 !important; display: block !important; float: none !important; }',
@@ -185,7 +184,6 @@ return view.extend({
             '.nw-form-area input:focus { border-color: #3b82f6 !important; background: #ffffff !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important; }',
             'input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active { -webkit-box-shadow: 0 0 0 1000px #f8fafc inset !important; -webkit-text-fill-color: #0f172a !important; transition: background-color 5000s ease-in-out 0s !important; }',
             
-            /* 按钮防弹衣 */
             '.nw-actions { margin-top: 35px; display: flex; justify-content: center; gap: 15px; }',
             '.nw-actions button { appearance: none !important; border-radius: 8px !important; padding: 12px 28px !important; font-weight: 600 !important; font-size: 15px !important; cursor: pointer !important; border: none !important; min-width: 120px !important; outline: none !important; height: auto !important; line-height: normal !important; margin: 0 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; transition: transform 0.1s, background 0.2s !important; }',
             '.nw-actions button:active { transform: scale(0.97) !important; }',
@@ -194,7 +192,6 @@ return view.extend({
             '.nw-actions .cbi-button-reset { background: #f43f5e !important; color: #fff !important; }',
             '.nw-actions .cbi-button-reset:hover { background: #e11d48 !important; }',
             
-            /* 细化单选与开关 */
             '.nw-radio-group { display: flex; gap: 24px; font-size: 15px; color: #333; align-items: center; margin: 0; padding: 0; }',
             '.nw-radio-group label { cursor: pointer; display: flex; align-items: center; gap: 6px; margin: 0 !important; padding: 0 !important; height: 20px; line-height: 1 !important; font-weight: normal; }',
             '.nw-radio-group input[type="radio"] { margin: 0 !important; padding: 0 !important; cursor: pointer; width: 16px !important; height: 16px !important; position: relative; top: 0; appearance: auto !important; }',
@@ -238,8 +235,8 @@ return view.extend({
             '  #nw-global-btn-wrap { flex-direction: row; gap: 12px; }',
             '  #nw-global-btn-wrap button { flex: 1; padding: 12px 0 !important; margin: 0 !important; }',
             '  .nw-radio-group { flex-wrap: wrap; gap: 12px; }',
-            '}'
-            ].join(''),
+            '}',
+            '</style>',
 
             '<div class="nw-wrapper">',
             '  <div class="nw-header">',
@@ -437,7 +434,6 @@ return view.extend({
                     
                     if ((selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass) || (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) || (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp')) { openModal({title: T['M_NO_MOD_TIT'], msg: T['M_NO_MOD_MSG'], okText: T['M_EXIT'], onOk: returnToStep1 }); return; }
                     
-                    // 调用 {ip} 和 {gw} 占位符进行纯净替换
                     if (selectedMode === 'router' && rType === 'static') { 
                         if (targetIp === currentLanIp || isSameSubnet(targetIp, currentLanIp)) { 
                             openModal({title:T['M_CFLT_TIT'], msg: (targetIp === currentLanIp ? T['M_CFLT_IP'].replace('{ip}', currentLanIp) : T['M_CFLT_SUB1'].replace('{ip}', currentLanIp) + '<br>' + T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; 
