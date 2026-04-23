@@ -12,7 +12,6 @@ permissions:
   contents: write
 
 jobs:
-  # 版本号处理
   prepare:
     name: Handle Version Input
     runs-on: ubuntu-22.04
@@ -47,7 +46,6 @@ jobs:
           V3=${parts[2]:-0}
           NEW_VERSION="${V1}.${V2}.${V3}"
           
-          # Ubuntu 更新代码，带路径 applications/
           sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=$NEW_VERSION/g" applications/luci-app-netwiz/Makefile
           sed -i "s/var CURRENT_VERSION = '.*';/var CURRENT_VERSION = 'v$NEW_VERSION';/g" applications/luci-app-netwiz/root/www/luci-static/resources/view/netwiz.js || true
           
@@ -92,12 +90,22 @@ jobs:
           PACKAGES: luci-app-netwiz
           NO_REFRESH_CHECK: true
 
-      - name: 提取安裝包 (保留主程式與語言包)
+      - name: 提取并规范化安装包 (去除版本号并按后缀分类)
         run: |
           mkdir -p release_pkgs
-          # 抓取所有包含 netwiz 的包
-          find bin/ -name "*netwiz*.ipk" -exec cp {} release_pkgs/ \; || true
-          find bin/ -name "*netwiz*.apk" -exec cp {} release_pkgs/ \; || true
+          # 使用通配符寻找主程序和语言包，提取后缀并重命名为带有分类前缀的干净文件名
+          for file in $(find bin/ -name "luci-app-netwiz*.*pk" 2>/dev/null); do
+            ext="${file##*.}"
+            cp "$file" "release_pkgs/${ext}_luci-app-netwiz.${ext}"
+          done
+          for file in $(find bin/ -name "luci-i18n-netwiz-zh-cn*.*pk" 2>/dev/null); do
+            ext="${file##*.}"
+            cp "$file" "release_pkgs/${ext}_luci-i18n-netwiz-zh-cn.${ext}"
+          done
+          for file in $(find bin/ -name "luci-i18n-netwiz-zh-tw*.*pk" 2>/dev/null); do
+            ext="${file##*.}"
+            cp "$file" "release_pkgs/${ext}_luci-i18n-netwiz-zh-tw.${ext}"
+          done
 
       - name: 上传编译产物到临时云端
         uses: actions/upload-artifact@v4
@@ -106,7 +114,6 @@ jobs:
           path: release_pkgs/*
           compression-level: 0
 
-  # 合并发版
   release:
     name: Publish Release
     needs: [prepare, build]
