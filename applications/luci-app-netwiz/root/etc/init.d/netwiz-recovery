@@ -1,0 +1,37 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
+# Licensed under the GNU General Public License v3.0
+# START=15 确保在 network 服务前执行
+START=15
+
+# 低频灾难恢复日志必须保存在闪存中，确保重启不丢失
+RECOVERY_LOG="/etc/netwiz_recovery.log"
+
+boot() {
+    # 检查闪存中的备份文件
+    if [ -f /etc/config/network.netwiz_bak ]; then
+        # 写入系统底层日志
+        logger -t Netwiz "Power loss detected during network setup! Forcefully recovering..."
+        
+        # 写入持久化专属日志
+        echo "=========================================================" >> "$RECOVERY_LOG"
+        echo "⚠️ [BOOT-RECOVERY] $(date '+%F %T') 检测到异常断电，正从闪存强制回退..." >> "$RECOVERY_LOG"
+        
+        # 恢复网络配置
+        cat /etc/config/network.netwiz_bak > /etc/config/network
+        cat /etc/config/dhcp.netwiz_bak > /etc/config/dhcp
+        
+        # 清理残留
+        rm -f /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
+        rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip
+        
+        echo "⚠️ [BOOT-RECOVERY] 异常断电回退完成！网络已安全恢复。" >> "$RECOVERY_LOG"
+        echo "=========================================================" >> "$RECOVERY_LOG"
+        
+        # 简单的日志体积控制，保留最后 100 行即可（毕竟极少发生）
+        if [ $(wc -l < "$RECOVERY_LOG" 2>/dev/null || echo 0) -gt 150 ]; then
+            tail -n 100 "$RECOVERY_LOG" > "$RECOVERY_LOG.tmp"
+            mv "$RECOVERY_LOG.tmp" "$RECOVERY_LOG"
+        fi
+    fi
+}
